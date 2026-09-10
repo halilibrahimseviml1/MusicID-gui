@@ -190,6 +190,8 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 6)
 UIListLayout.Parent = ScrollArea
 
+local lastAddTick = 0
+
 local function addSongUI(songId, name, addedByName, addedByUserId, dbKey)
     local Item = Instance.new("Frame")
     Item.Size = UDim2.new(1, -5, 0, 45)
@@ -312,7 +314,6 @@ function loadSongs()
                 local uId = song.userId or 1
                 local dbKey = song._id or song.id
                 
-                -- Eğer eskiden kalma || formatlı veri varsa onu da destekle
                 if string.find(sName, "||") then
                     local split = string.split(sName, "||")
                     sName = split[1]
@@ -333,7 +334,34 @@ AddBtn.MouseButton1Click:Connect(function()
     if sName == "" or sName:match("^%s*$") then return end
     if sId == "" or not tonumber(sId) then return end
     
-    -- API'nin standart alanlarını ve eklenen bilgileri eksiksiz gönderiyoruz
+    if tick() - lastAddTick < 60 then
+        AddBtn.Text = "Wait 1m!"
+        task.wait(1.5)
+        AddBtn.Text = "Add"
+        return
+    end
+    
+    local exists = false
+    local success, response = pcall(function() return game:HttpGet(API_URL) end)
+    if success and response then
+        local data = HttpService:JSONDecode(response)
+        for _, song in ipairs(data) do
+            if tostring(song.id) == tostring(sId) or string.lower(tostring(song.name)) == string.lower(tostring(sName)) then
+                exists = true
+                break
+            end
+        end
+    end
+    
+    if exists then
+        AddBtn.Text = "Exists!"
+        task.wait(1.5)
+        AddBtn.Text = "Add"
+        return
+    end
+    
+    lastAddTick = tick()
+    
     local payload = HttpService:JSONEncode({
         name = sName, 
         id = sId,

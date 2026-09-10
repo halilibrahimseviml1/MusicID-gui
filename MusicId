@@ -6,7 +6,6 @@ local LocalPlayer = Players.LocalPlayer
 local API_URL = "https://musicid.onrender.com/songs"
 local ADMIN_USER = "halilibrahimseviml1"
 
--- GUI Güvenliği / Yeri
 local parentGui = CoreGui
 if gethui then 
     parentGui = gethui() 
@@ -14,7 +13,6 @@ elseif not pcall(function() return CoreGui.Name end) then
     parentGui = LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- Eski sürüm varsa temizle
 if parentGui:FindFirstChild("LightningHubMusic") then
     parentGui.LightningHubMusic:Destroy()
 end
@@ -23,18 +21,16 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "LightningHubMusic"
 ScreenGui.Parent = parentGui
 
--- ANA PANEL (Daha kompakt boyut)
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 520, 0, 340)
 MainFrame.Position = UDim2.new(0.5, -260, 0.5, -170)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-MainFrame.ClipsDescendants = true -- Küçültme işlemi için gerekli
+MainFrame.ClipsDescendants = true
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
 
--- ÜST BAR (Hareket ettirme ve başlık)
 local TopBar = Instance.new("Frame")
 TopBar.Size = UDim2.new(1, 0, 0, 35)
 TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -42,7 +38,7 @@ TopBar.BorderSizePixel = 0
 TopBar.Parent = MainFrame
 Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 
-local BottomFix = Instance.new("Frame") -- Köşeleri düzeltmek için
+local BottomFix = Instance.new("Frame")
 BottomFix.Size = UDim2.new(1, 0, 0, 8)
 BottomFix.Position = UDim2.new(0, 0, 1, -8)
 BottomFix.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -60,7 +56,6 @@ TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 14
 TitleLabel.Parent = TopBar
 
--- KÜÇÜLTME BUTONU (-)
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Size = UDim2.new(0, 30, 0, 25)
 MinimizeBtn.Position = UDim2.new(1, -75, 0, 5)
@@ -76,13 +71,12 @@ local minimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     if minimized then
-        MainFrame.Size = UDim2.new(0, 520, 0, 35) -- Sadece üst bar görünür
+        MainFrame.Size = UDim2.new(0, 520, 0, 35)
     else
-        MainFrame.Size = UDim2.new(0, 520, 0, 340) -- Tam boyut
+        MainFrame.Size = UDim2.new(0, 520, 0, 340)
     end
 end)
 
--- KAPATMA BUTONU (X)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 25)
 CloseBtn.Position = UDim2.new(1, -40, 0, 5)
@@ -94,7 +88,6 @@ CloseBtn.Parent = TopBar
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- SOL MENÜ (Sidebar)
 local Sidebar = Instance.new("Frame")
 Sidebar.Size = UDim2.new(0, 130, 1, -35)
 Sidebar.Position = UDim2.new(0, 0, 0, 35)
@@ -102,7 +95,6 @@ Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 Sidebar.BorderSizePixel = 0
 Sidebar.Parent = MainFrame
 
--- TABLAR (Menü Butonları)
 local MainTabBtn = Instance.new("TextButton")
 MainTabBtn.Size = UDim2.new(1, -10, 0, 35)
 MainTabBtn.Position = UDim2.new(0, 5, 0, 10)
@@ -123,7 +115,6 @@ GlobalChatBtn.Font = Enum.Font.GothamBold
 GlobalChatBtn.Parent = Sidebar
 Instance.new("UICorner", GlobalChatBtn).CornerRadius = UDim.new(0, 6)
 
--- HAZIRLAYAN (En alt sol menü)
 local Footer = Instance.new("TextLabel")
 Footer.Size = UDim2.new(1, -10, 0, 30)
 Footer.Position = UDim2.new(0, 5, 1, -35)
@@ -134,14 +125,12 @@ Footer.Font = Enum.Font.Gotham
 Footer.TextSize = 11
 Footer.Parent = Sidebar
 
--- İÇERİK ALANI (Sağ taraf)
 local ContentArea = Instance.new("Frame")
 ContentArea.Size = UDim2.new(1, -130, 1, -35)
 ContentArea.Position = UDim2.new(0, 130, 0, 35)
 ContentArea.BackgroundTransparency = 1
 ContentArea.Parent = MainFrame
 
--- Şarkı Ekleme Girişleri
 local IDInput = Instance.new("TextBox")
 IDInput.Size = UDim2.new(0, 110, 0, 30)
 IDInput.Position = UDim2.new(0, 10, 0, 10)
@@ -153,10 +142,15 @@ IDInput.Font = Enum.Font.Gotham
 IDInput.Parent = ContentArea
 Instance.new("UICorner", IDInput).CornerRadius = UDim.new(0, 6)
 
+-- HARF YAZMAYI ENGELLER, SADECE RAKAM
+IDInput:GetPropertyChangedSignal("Text"):Connect(function()
+    IDInput.Text = IDInput.Text:gsub("%D", "")
+end)
+
 local NameInput = Instance.new("TextBox")
 NameInput.Size = UDim2.new(0, 160, 0, 30)
 NameInput.Position = UDim2.new(0, 130, 0, 10)
-NameInput.PlaceholderText = "Name (optional)"
+NameInput.PlaceholderText = "Name (Required)"
 NameInput.Text = ""
 NameInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 NameInput.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
@@ -174,7 +168,6 @@ AddBtn.Font = Enum.Font.GothamBold
 AddBtn.Parent = ContentArea
 Instance.new("UICorner", AddBtn).CornerRadius = UDim.new(0, 6)
 
--- ARAMA ÇUBUĞU (Search)
 local SearchBar = Instance.new("TextBox")
 SearchBar.Size = UDim2.new(0, 360, 0, 30)
 SearchBar.Position = UDim2.new(0, 10, 0, 50)
@@ -186,7 +179,6 @@ SearchBar.Font = Enum.Font.Gotham
 SearchBar.Parent = ContentArea
 Instance.new("UICorner", SearchBar).CornerRadius = UDim.new(0, 6)
 
--- LİSTE ALANI
 local ScrollArea = Instance.new("ScrollingFrame")
 ScrollArea.Size = UDim2.new(1, -20, 1, -100)
 ScrollArea.Position = UDim2.new(0, 10, 0, 90)
@@ -199,14 +191,12 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 6)
 UIListLayout.Parent = ScrollArea
 
--- ARŞİVE ŞARKI EKLEME FONKSİYONU (UI Görüntüsü)
 local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
     local Item = Instance.new("Frame")
     Item.Size = UDim2.new(1, -5, 0, 45)
     Item.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
     Instance.new("UICorner", Item).CornerRadius = UDim.new(0, 6)
     
-    -- Profil Fotoğrafı
     local PFP = Instance.new("ImageLabel")
     PFP.Size = UDim2.new(0, 35, 0, 35)
     PFP.Position = UDim2.new(0, 5, 0, 5)
@@ -214,16 +204,14 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
     PFP.Parent = Item
     Instance.new("UICorner", PFP).CornerRadius = UDim.new(1, 0)
     
-    -- Fotoğrafı çekme
     task.spawn(function()
-        local userId = addedByUserId or 1 -- Yoksa Roblox kurucusu (ID 1)
-        local thumbType = Enum.ThumbnailType.HeadShot
-        local thumbSize = Enum.ThumbnailSize.Size48x48
-        local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
-        if isReady then PFP.Image = content end
+        local userId = addedByUserId or 1
+        local success, content = pcall(function()
+            return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        end)
+        if success and content then PFP.Image = content end
     end)
     
-    -- Bilgi Metinleri
     local InfoLabel = Instance.new("TextLabel")
     InfoLabel.Size = UDim2.new(0.5, 0, 0.5, 0)
     InfoLabel.Position = UDim2.new(0, 50, 0, 4)
@@ -233,7 +221,7 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
     InfoLabel.Font = Enum.Font.GothamBold
     InfoLabel.TextSize = 13
     InfoLabel.Text = name .. " (" .. songId .. ")"
-    InfoLabel.Name = "InfoLabel" -- Arama sistemi için isimlendirme
+    InfoLabel.Name = "InfoLabel"
     InfoLabel.Parent = Item
     
     local AddedByLabel = Instance.new("TextLabel")
@@ -247,7 +235,6 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
     AddedByLabel.Text = "Added by: " .. (addedByName or "Unknown")
     AddedByLabel.Parent = Item
     
-    -- Copy Butonu
     local CopyBtn = Instance.new("TextButton")
     CopyBtn.Size = UDim2.new(0, 60, 0, 25)
     CopyBtn.Position = UDim2.new(1, -65, 0, 10)
@@ -265,7 +252,6 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
         CopyBtn.Text = "Copy"
     end)
     
-    -- ADMIN SİLME BUTONU
     if LocalPlayer.Name == ADMIN_USER then
         local DeleteBtn = Instance.new("TextButton")
         DeleteBtn.Size = UDim2.new(0, 55, 0, 25)
@@ -278,14 +264,11 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
         DeleteBtn.Parent = Item
         
         DeleteBtn.MouseButton1Click:Connect(function()
-            -- API üzerindeki şarkının kendi ID'sini baz alarak Delete request atıyoruz
             local deleteUrl = API_URL .. "/" .. tostring(dbId or songId)
             task.spawn(function()
-                pcall(function()
-                    request({ Url = deleteUrl, Method = "DELETE" })
-                end)
+                pcall(function() request({ Url = deleteUrl, Method = "DELETE" }) end)
                 task.wait(0.5)
-                loadSongs() -- Listeyi yenile
+                loadSongs()
             end)
         end)
     end
@@ -294,7 +277,6 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
     ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
 end
 
--- ARAMA FONKSİYONU
 SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
     local query = string.lower(SearchBar.Text)
     for _, item in ipairs(ScrollArea:GetChildren()) do
@@ -312,7 +294,6 @@ SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
     ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
 end)
 
--- VERİTABANINDAN ŞARKILARI ÇEKME
 function loadSongs()
     for _, v in ipairs(ScrollArea:GetChildren()) do
         if v:IsA("Frame") then v:Destroy() end
@@ -323,52 +304,51 @@ function loadSongs()
         if success and response then
             local data = HttpService:JSONDecode(response)
             for _, song in ipairs(data) do
-                -- Eklentiyi kimin yaptığı API'de kayıtlıysa onu çeker, yoksa Unknown yazar.
-                -- song.id api'nin db id'si, song.audioId vb de olabilir. Standart olarak id/name dönüyor varsayıyorum.
-                addSongUI(song.id, song.name, song.addedBy, song.userId, song.id)
+                -- Veriyi ayrıştır (İsim||Ekleyen||UserID formatı)
+                local sName = song.name
+                local addedBy = "Unknown"
+                local uId = 1
+                
+                if string.find(sName, "||") then
+                    local split = string.split(sName, "||")
+                    sName = split[1]
+                    addedBy = split[2] or "Unknown"
+                    uId = tonumber(split[3]) or 1
+                end
+                
+                addSongUI(song.id, sName, addedBy, uId, song.id)
             end
         end
     end)
 end
 
--- YENİ ŞARKI EKLEME (ADD)
 AddBtn.MouseButton1Click:Connect(function()
-    if IDInput.Text ~= "" then
-        local songName = NameInput.Text
-        if songName == "" then songName = "Unknown Song" end
-        
-        -- Veritabanına şarkıyı, ekleyenin ismi ve id'si ile gönderiyoruz.
-        local data = HttpService:JSONEncode({
-            name = songName, 
-            id = IDInput.Text,
-            addedBy = LocalPlayer.Name,
-            userId = LocalPlayer.UserId
-        })
-        
-        task.spawn(function()
-            pcall(function()
-                request({
-                    Url = API_URL,
-                    Method = "POST",
-                    Headers = {["Content-Type"] = "application/json"},
-                    Body = data
-                })
-            end)
-            task.wait(0.5)
-            loadSongs()
+    -- ZORUNLU İSİM VE ZORUNLU RAKAM KONTROLÜ
+    local sName = NameInput.Text
+    local sId = IDInput.Text
+    
+    if sName == "" or sName:match("^%s*$") then return end
+    if sId == "" or not tonumber(sId) then return end
+    
+    -- API kısıtlamasını aşmak için veriyi ismin içine gizliyoruz
+    local encodedName = sName .. "||" .. LocalPlayer.Name .. "||" .. tostring(LocalPlayer.UserId)
+    local data = HttpService:JSONEncode({ name = encodedName, id = sId })
+    
+    task.spawn(function()
+        pcall(function()
+            request({ Url = API_URL, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = data })
         end)
-        IDInput.Text = ""
-        NameInput.Text = ""
-    end
+        task.wait(0.5)
+        loadSongs()
+    end)
+    IDInput.Text = ""
+    NameInput.Text = ""
 end)
 
--- GLOBAL CHAT BUTONU
 GlobalChatBtn.MouseButton1Click:Connect(function()
     GlobalChatBtn.Text = "Executing..."
     task.spawn(function()
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/halilibrahimseviml1/ChatNoAgeVerification/refs/heads/main/NoAgeVerification"))()
-        end)
+        pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/halilibrahimseviml1/ChatNoAgeVerification/refs/heads/main/NoAgeVerification"))() end)
         task.wait(1)
         GlobalChatBtn.Text = "Executed! ✔️"
         task.wait(2)
@@ -376,15 +356,12 @@ GlobalChatBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- TAB DEĞİŞTİRME GÖRSELİ (Main butonu seçili)
 MainTabBtn.MouseButton1Click:Connect(function()
     ContentArea.Visible = true
     MainTabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
     MainTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    
     GlobalChatBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     GlobalChatBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 end)
 
--- Başlangıçta Şarkıları Yükle
 loadSongs()

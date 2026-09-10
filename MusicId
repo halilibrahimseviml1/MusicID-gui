@@ -142,7 +142,6 @@ IDInput.Font = Enum.Font.Gotham
 IDInput.Parent = ContentArea
 Instance.new("UICorner", IDInput).CornerRadius = UDim.new(0, 6)
 
--- HARF YAZMAYI ENGELLER, SADECE RAKAM
 IDInput:GetPropertyChangedSignal("Text"):Connect(function()
     IDInput.Text = IDInput.Text:gsub("%D", "")
 end)
@@ -191,7 +190,7 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 6)
 UIListLayout.Parent = ScrollArea
 
-local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
+local function addSongUI(songId, name, addedByName, addedByUserId, dbKey)
     local Item = Instance.new("Frame")
     Item.Size = UDim2.new(1, -5, 0, 45)
     Item.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
@@ -205,7 +204,7 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
     Instance.new("UICorner", PFP).CornerRadius = UDim.new(1, 0)
     
     task.spawn(function()
-        local userId = addedByUserId or 1
+        local userId = tonumber(addedByUserId) or 1
         local success, content = pcall(function()
             return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
         end)
@@ -264,9 +263,13 @@ local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
         DeleteBtn.Parent = Item
         
         DeleteBtn.MouseButton1Click:Connect(function()
-            local deleteUrl = API_URL .. "/" .. tostring(dbId or songId)
             task.spawn(function()
-                pcall(function() request({ Url = deleteUrl, Method = "DELETE" }) end)
+                pcall(function()
+                    request({ 
+                        Url = API_URL .. "/" .. tostring(dbKey), 
+                        Method = "DELETE" 
+                    })
+                end)
                 task.wait(0.5)
                 loadSongs()
             end)
@@ -304,11 +307,12 @@ function loadSongs()
         if success and response then
             local data = HttpService:JSONDecode(response)
             for _, song in ipairs(data) do
-                -- Veriyi ayrıştır (İsim||Ekleyen||UserID formatı)
-                local sName = song.name
-                local addedBy = "Unknown"
-                local uId = 1
+                local sName = song.name or "Unknown"
+                local addedBy = song.addedBy or "Unknown"
+                local uId = song.userId or 1
+                local dbKey = song._id or song.id
                 
+                -- Eğer eskiden kalma || formatlı veri varsa onu da destekle
                 if string.find(sName, "||") then
                     local split = string.split(sName, "||")
                     sName = split[1]
@@ -316,27 +320,35 @@ function loadSongs()
                     uId = tonumber(split[3]) or 1
                 end
                 
-                addSongUI(song.id, sName, addedBy, uId, song.id)
+                addSongUI(song.id, sName, addedBy, uId, dbKey)
             end
         end
     end)
 end
 
 AddBtn.MouseButton1Click:Connect(function()
-    -- ZORUNLU İSİM VE ZORUNLU RAKAM KONTROLÜ
     local sName = NameInput.Text
     local sId = IDInput.Text
     
     if sName == "" or sName:match("^%s*$") then return end
     if sId == "" or not tonumber(sId) then return end
     
-    -- API kısıtlamasını aşmak için veriyi ismin içine gizliyoruz
-    local encodedName = sName .. "||" .. LocalPlayer.Name .. "||" .. tostring(LocalPlayer.UserId)
-    local data = HttpService:JSONEncode({ name = encodedName, id = sId })
+    -- API'nin standart alanlarını ve eklenen bilgileri eksiksiz gönderiyoruz
+    local payload = HttpService:JSONEncode({
+        name = sName, 
+        id = sId,
+        addedBy = LocalPlayer.Name,
+        userId = tostring(LocalPlayer.UserId)
+    })
     
     task.spawn(function()
         pcall(function()
-            request({ Url = API_URL, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = data })
+            request({ 
+                Url = API_URL, 
+                Method = "POST", 
+                Headers = {["Content-Type"] = "application/json"}, 
+                Body = payload 
+            })
         end)
         task.wait(0.5)
         loadSongs()

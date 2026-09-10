@@ -1,0 +1,136 @@
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+
+local API_URL = "https://musicid.onrender.com/songs"
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MusicIDHub"
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -190)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Size = UDim2.new(1, -20, 1, -110)
+ScrollingFrame.Position = UDim2.new(0, 10, 0, 60)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollingFrame.Parent = MainFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 5)
+UIListLayout.Parent = ScrollingFrame
+
+local function addSong(name, id)
+    local Item = Instance.new("Frame")
+    Item.Size = UDim2.new(1, -10, 0, 40)
+    Item.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = Item
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.6, 0, 1, 0)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = name .. " (" .. id .. ")"
+    Label.Parent = Item
+    
+    local CopyBtn = Instance.new("TextButton")
+    CopyBtn.Size = UDim2.new(0.3, 0, 0.7, 0)
+    CopyBtn.Position = UDim2.new(0.68, 0, 0.15, 0)
+    CopyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    CopyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CopyBtn.TextSize = 14
+    CopyBtn.Text = "Kopyala"
+    
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 4)
+    BtnCorner.Parent = CopyBtn
+    
+    CopyBtn.MouseButton1Click:Connect(function()
+        setclipboard(id)
+        CopyBtn.Text = "Kopyalandı!"
+        task.wait(1)
+        CopyBtn.Text = "Kopyala"
+    end)
+    
+    CopyBtn.Parent = Item
+    Item.Parent = ScrollingFrame
+    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+end
+
+local function loadSongs()
+    for _, v in ipairs(ScrollingFrame:GetChildren()) do
+        if v:IsA("Frame") then v:Destroy() end
+    end
+    
+    local success, response = pcall(function()
+        return game:HttpGet(API_URL)
+    end)
+    
+    if success then
+        local data = HttpService:JSONDecode(response)
+        for _, song in ipairs(data) do
+            addSong(song.name, song.id)
+        end
+    end
+end
+
+local NameInput = Instance.new("TextBox")
+NameInput.Size = UDim2.new(0, 160, 0, 35)
+NameInput.Position = UDim2.new(0, 10, 0, 15)
+NameInput.PlaceholderText = "Şarkı Adı"
+NameInput.Text = ""
+NameInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+NameInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+NameInput.Parent = MainFrame
+
+local IDInput = Instance.new("TextBox")
+IDInput.Size = UDim2.new(0, 130, 0, 35)
+IDInput.Position = UDim2.new(0, 175, 0, 15)
+IDInput.PlaceholderText = "Müzik ID"
+IDInput.Text = ""
+IDInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+IDInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+IDInput.Parent = MainFrame
+
+local AddBtn = Instance.new("TextButton")
+AddBtn.Size = UDim2.new(0, 85, 0, 35)
+AddBtn.Position = UDim2.new(0, 315, 0, 15)
+AddBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+AddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AddBtn.Text = "Ekle"
+AddBtn.Parent = MainFrame
+
+AddBtn.MouseButton1Click:Connect(function()
+    if NameInput.Text ~= "" and IDInput.Text ~= "" then
+        local data = HttpService:JSONEncode({name = NameInput.Text, id = IDInput.Text})
+        pcall(function()
+            request({
+                Url = API_URL,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = data
+            })
+        end)
+        NameInput.Text = ""
+        IDInput.Text = ""
+        task.wait(0.5)
+        loadSongs()
+    end
+end)
+
+loadSongs()

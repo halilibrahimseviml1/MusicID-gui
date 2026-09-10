@@ -1,136 +1,390 @@
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
 
 local API_URL = "https://musicid.onrender.com/songs"
+local ADMIN_USER = "halilibrahimseviml1"
+
+-- GUI Güvenliği / Yeri
+local parentGui = CoreGui
+if gethui then 
+    parentGui = gethui() 
+elseif not pcall(function() return CoreGui.Name end) then
+    parentGui = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Eski sürüm varsa temizle
+if parentGui:FindFirstChild("LightningHubMusic") then
+    parentGui.LightningHubMusic:Destroy()
+end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "MusicIDHub"
-ScreenGui.Parent = CoreGui
+ScreenGui.Name = "LightningHubMusic"
+ScreenGui.Parent = parentGui
 
+-- ANA PANEL (Daha kompakt boyut)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 420, 0, 380)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -190)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Size = UDim2.new(0, 520, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -170)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+MainFrame.ClipsDescendants = true -- Küçültme işlemi için gerekli
+MainFrame.Active = true
+MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainFrame
+-- ÜST BAR (Hareket ettirme ve başlık)
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 
-local ScrollingFrame = Instance.new("ScrollingFrame")
-ScrollingFrame.Size = UDim2.new(1, -20, 1, -110)
-ScrollingFrame.Position = UDim2.new(0, 10, 0, 60)
-ScrollingFrame.BackgroundTransparency = 1
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-ScrollingFrame.Parent = MainFrame
+local BottomFix = Instance.new("Frame") -- Köşeleri düzeltmek için
+BottomFix.Size = UDim2.new(1, 0, 0, 8)
+BottomFix.Position = UDim2.new(0, 0, 1, -8)
+BottomFix.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+BottomFix.BorderSizePixel = 0
+BottomFix.Parent = TopBar
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 5)
-UIListLayout.Parent = ScrollingFrame
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0.6, 0, 1, 0)
+TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "LightningHub⚡️Music ID Archive"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 14
+TitleLabel.Parent = TopBar
 
-local function addSong(name, id)
-    local Item = Instance.new("Frame")
-    Item.Size = UDim2.new(1, -10, 0, 40)
-    Item.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 6)
-    Corner.Parent = Item
-    
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.6, 0, 1, 0)
-    Label.Position = UDim2.new(0, 10, 0, 0)
-    Label.BackgroundTransparency = 1
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Label.TextSize = 14
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Text = name .. " (" .. id .. ")"
-    Label.Parent = Item
-    
-    local CopyBtn = Instance.new("TextButton")
-    CopyBtn.Size = UDim2.new(0.3, 0, 0.7, 0)
-    CopyBtn.Position = UDim2.new(0.68, 0, 0.15, 0)
-    CopyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-    CopyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CopyBtn.TextSize = 14
-    CopyBtn.Text = "Kopyala"
-    
-    local BtnCorner = Instance.new("UICorner")
-    BtnCorner.CornerRadius = UDim.new(0, 4)
-    BtnCorner.Parent = CopyBtn
-    
-    CopyBtn.MouseButton1Click:Connect(function()
-        setclipboard(id)
-        CopyBtn.Text = "Kopyalandı!"
-        task.wait(1)
-        CopyBtn.Text = "Kopyala"
-    end)
-    
-    CopyBtn.Parent = Item
-    Item.Parent = ScrollingFrame
-    ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
-end
+-- KÜÇÜLTME BUTONU (-)
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 25)
+MinimizeBtn.Position = UDim2.new(1, -75, 0, 5)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 18
+MinimizeBtn.Parent = TopBar
+Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0, 6)
 
-local function loadSongs()
-    for _, v in ipairs(ScrollingFrame:GetChildren()) do
-        if v:IsA("Frame") then v:Destroy() end
-    end
-    
-    local success, response = pcall(function()
-        return game:HttpGet(API_URL)
-    end)
-    
-    if success then
-        local data = HttpService:JSONDecode(response)
-        for _, song in ipairs(data) do
-            addSong(song.name, song.id)
-        end
-    end
-end
-
-local NameInput = Instance.new("TextBox")
-NameInput.Size = UDim2.new(0, 160, 0, 35)
-NameInput.Position = UDim2.new(0, 10, 0, 15)
-NameInput.PlaceholderText = "Şarkı Adı"
-NameInput.Text = ""
-NameInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-NameInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-NameInput.Parent = MainFrame
-
-local IDInput = Instance.new("TextBox")
-IDInput.Size = UDim2.new(0, 130, 0, 35)
-IDInput.Position = UDim2.new(0, 175, 0, 15)
-IDInput.PlaceholderText = "Müzik ID"
-IDInput.Text = ""
-IDInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-IDInput.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-IDInput.Parent = MainFrame
-
-local AddBtn = Instance.new("TextButton")
-AddBtn.Size = UDim2.new(0, 85, 0, 35)
-AddBtn.Position = UDim2.new(0, 315, 0, 15)
-AddBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
-AddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-AddBtn.Text = "Ekle"
-AddBtn.Parent = MainFrame
-
-AddBtn.MouseButton1Click:Connect(function()
-    if NameInput.Text ~= "" and IDInput.Text ~= "" then
-        local data = HttpService:JSONEncode({name = NameInput.Text, id = IDInput.Text})
-        pcall(function()
-            request({
-                Url = API_URL,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = data
-            })
-        end)
-        NameInput.Text = ""
-        IDInput.Text = ""
-        task.wait(0.5)
-        loadSongs()
+local minimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        MainFrame.Size = UDim2.new(0, 520, 0, 35) -- Sadece üst bar görünür
+    else
+        MainFrame.Size = UDim2.new(0, 520, 0, 340) -- Tam boyut
     end
 end)
 
+-- KAPATMA BUTONU (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 25)
+CloseBtn.Position = UDim2.new(1, -40, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TopBar
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- SOL MENÜ (Sidebar)
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 130, 1, -35)
+Sidebar.Position = UDim2.new(0, 0, 0, 35)
+Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = MainFrame
+
+-- TABLAR (Menü Butonları)
+local MainTabBtn = Instance.new("TextButton")
+MainTabBtn.Size = UDim2.new(1, -10, 0, 35)
+MainTabBtn.Position = UDim2.new(0, 5, 0, 10)
+MainTabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+MainTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainTabBtn.Text = "Main"
+MainTabBtn.Font = Enum.Font.GothamBold
+MainTabBtn.Parent = Sidebar
+Instance.new("UICorner", MainTabBtn).CornerRadius = UDim.new(0, 6)
+
+local GlobalChatBtn = Instance.new("TextButton")
+GlobalChatBtn.Size = UDim2.new(1, -10, 0, 35)
+GlobalChatBtn.Position = UDim2.new(0, 5, 0, 50)
+GlobalChatBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+GlobalChatBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+GlobalChatBtn.Text = "Global Chat 💬"
+GlobalChatBtn.Font = Enum.Font.GothamBold
+GlobalChatBtn.Parent = Sidebar
+Instance.new("UICorner", GlobalChatBtn).CornerRadius = UDim.new(0, 6)
+
+-- HAZIRLAYAN (En alt sol menü)
+local Footer = Instance.new("TextLabel")
+Footer.Size = UDim2.new(1, -10, 0, 30)
+Footer.Position = UDim2.new(0, 5, 1, -35)
+Footer.BackgroundTransparency = 1
+Footer.Text = "prepared by\n" .. ADMIN_USER
+Footer.TextColor3 = Color3.fromRGB(120, 120, 130)
+Footer.Font = Enum.Font.Gotham
+Footer.TextSize = 11
+Footer.Parent = Sidebar
+
+-- İÇERİK ALANI (Sağ taraf)
+local ContentArea = Instance.new("Frame")
+ContentArea.Size = UDim2.new(1, -130, 1, -35)
+ContentArea.Position = UDim2.new(0, 130, 0, 35)
+ContentArea.BackgroundTransparency = 1
+ContentArea.Parent = MainFrame
+
+-- Şarkı Ekleme Girişleri
+local IDInput = Instance.new("TextBox")
+IDInput.Size = UDim2.new(0, 110, 0, 30)
+IDInput.Position = UDim2.new(0, 10, 0, 10)
+IDInput.PlaceholderText = "Audio ID"
+IDInput.Text = ""
+IDInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+IDInput.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+IDInput.Font = Enum.Font.Gotham
+IDInput.Parent = ContentArea
+Instance.new("UICorner", IDInput).CornerRadius = UDim.new(0, 6)
+
+local NameInput = Instance.new("TextBox")
+NameInput.Size = UDim2.new(0, 160, 0, 30)
+NameInput.Position = UDim2.new(0, 130, 0, 10)
+NameInput.PlaceholderText = "Name (optional)"
+NameInput.Text = ""
+NameInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+NameInput.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+NameInput.Font = Enum.Font.Gotham
+NameInput.Parent = ContentArea
+Instance.new("UICorner", NameInput).CornerRadius = UDim.new(0, 6)
+
+local AddBtn = Instance.new("TextButton")
+AddBtn.Size = UDim2.new(0, 70, 0, 30)
+AddBtn.Position = UDim2.new(0, 300, 0, 10)
+AddBtn.BackgroundColor3 = Color3.fromRGB(45, 160, 95)
+AddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AddBtn.Text = "Add"
+AddBtn.Font = Enum.Font.GothamBold
+AddBtn.Parent = ContentArea
+Instance.new("UICorner", AddBtn).CornerRadius = UDim.new(0, 6)
+
+-- ARAMA ÇUBUĞU (Search)
+local SearchBar = Instance.new("TextBox")
+SearchBar.Size = UDim2.new(0, 360, 0, 30)
+SearchBar.Position = UDim2.new(0, 10, 0, 50)
+SearchBar.PlaceholderText = "🔍 Search Song Name or ID..."
+SearchBar.Text = ""
+SearchBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBar.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+SearchBar.Font = Enum.Font.Gotham
+SearchBar.Parent = ContentArea
+Instance.new("UICorner", SearchBar).CornerRadius = UDim.new(0, 6)
+
+-- LİSTE ALANI
+local ScrollArea = Instance.new("ScrollingFrame")
+ScrollArea.Size = UDim2.new(1, -20, 1, -100)
+ScrollArea.Position = UDim2.new(0, 10, 0, 90)
+ScrollArea.BackgroundTransparency = 1
+ScrollArea.ScrollBarThickness = 4
+ScrollArea.Parent = ContentArea
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.Parent = ScrollArea
+
+-- ARŞİVE ŞARKI EKLEME FONKSİYONU (UI Görüntüsü)
+local function addSongUI(songId, name, addedByName, addedByUserId, dbId)
+    local Item = Instance.new("Frame")
+    Item.Size = UDim2.new(1, -5, 0, 45)
+    Item.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    Instance.new("UICorner", Item).CornerRadius = UDim.new(0, 6)
+    
+    -- Profil Fotoğrafı
+    local PFP = Instance.new("ImageLabel")
+    PFP.Size = UDim2.new(0, 35, 0, 35)
+    PFP.Position = UDim2.new(0, 5, 0, 5)
+    PFP.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    PFP.Parent = Item
+    Instance.new("UICorner", PFP).CornerRadius = UDim.new(1, 0)
+    
+    -- Fotoğrafı çekme
+    task.spawn(function()
+        local userId = addedByUserId or 1 -- Yoksa Roblox kurucusu (ID 1)
+        local thumbType = Enum.ThumbnailType.HeadShot
+        local thumbSize = Enum.ThumbnailSize.Size48x48
+        local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
+        if isReady then PFP.Image = content end
+    end)
+    
+    -- Bilgi Metinleri
+    local InfoLabel = Instance.new("TextLabel")
+    InfoLabel.Size = UDim2.new(0.5, 0, 0.5, 0)
+    InfoLabel.Position = UDim2.new(0, 50, 0, 4)
+    InfoLabel.BackgroundTransparency = 1
+    InfoLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+    InfoLabel.TextXAlignment = Enum.TextXAlignment.Left
+    InfoLabel.Font = Enum.Font.GothamBold
+    InfoLabel.TextSize = 13
+    InfoLabel.Text = name .. " (" .. songId .. ")"
+    InfoLabel.Name = "InfoLabel" -- Arama sistemi için isimlendirme
+    InfoLabel.Parent = Item
+    
+    local AddedByLabel = Instance.new("TextLabel")
+    AddedByLabel.Size = UDim2.new(0.5, 0, 0.5, 0)
+    AddedByLabel.Position = UDim2.new(0, 50, 0, 22)
+    AddedByLabel.BackgroundTransparency = 1
+    AddedByLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    AddedByLabel.TextXAlignment = Enum.TextXAlignment.Left
+    AddedByLabel.Font = Enum.Font.Gotham
+    AddedByLabel.TextSize = 11
+    AddedByLabel.Text = "Added by: " .. (addedByName or "Unknown")
+    AddedByLabel.Parent = Item
+    
+    -- Copy Butonu
+    local CopyBtn = Instance.new("TextButton")
+    CopyBtn.Size = UDim2.new(0, 60, 0, 25)
+    CopyBtn.Position = UDim2.new(1, -65, 0, 10)
+    CopyBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
+    CopyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CopyBtn.Text = "Copy"
+    CopyBtn.Font = Enum.Font.Gotham
+    Instance.new("UICorner", CopyBtn).CornerRadius = UDim.new(0, 4)
+    CopyBtn.Parent = Item
+    
+    CopyBtn.MouseButton1Click:Connect(function()
+        setclipboard(tostring(songId))
+        CopyBtn.Text = "Copied!"
+        task.wait(1)
+        CopyBtn.Text = "Copy"
+    end)
+    
+    -- ADMIN SİLME BUTONU
+    if LocalPlayer.Name == ADMIN_USER then
+        local DeleteBtn = Instance.new("TextButton")
+        DeleteBtn.Size = UDim2.new(0, 55, 0, 25)
+        DeleteBtn.Position = UDim2.new(1, -125, 0, 10)
+        DeleteBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+        DeleteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        DeleteBtn.Text = "Delete"
+        DeleteBtn.Font = Enum.Font.Gotham
+        Instance.new("UICorner", DeleteBtn).CornerRadius = UDim.new(0, 4)
+        DeleteBtn.Parent = Item
+        
+        DeleteBtn.MouseButton1Click:Connect(function()
+            -- API üzerindeki şarkının kendi ID'sini baz alarak Delete request atıyoruz
+            local deleteUrl = API_URL .. "/" .. tostring(dbId or songId)
+            task.spawn(function()
+                pcall(function()
+                    request({ Url = deleteUrl, Method = "DELETE" })
+                end)
+                task.wait(0.5)
+                loadSongs() -- Listeyi yenile
+            end)
+        end)
+    end
+    
+    Item.Parent = ScrollArea
+    ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+end
+
+-- ARAMA FONKSİYONU
+SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = string.lower(SearchBar.Text)
+    for _, item in ipairs(ScrollArea:GetChildren()) do
+        if item:IsA("Frame") then
+            local info = item:FindFirstChild("InfoLabel")
+            if info then
+                if query == "" or string.find(string.lower(info.Text), query) then
+                    item.Visible = true
+                else
+                    item.Visible = false
+                end
+            end
+        end
+    end
+    ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+end)
+
+-- VERİTABANINDAN ŞARKILARI ÇEKME
+function loadSongs()
+    for _, v in ipairs(ScrollArea:GetChildren()) do
+        if v:IsA("Frame") then v:Destroy() end
+    end
+    
+    task.spawn(function()
+        local success, response = pcall(function() return game:HttpGet(API_URL) end)
+        if success and response then
+            local data = HttpService:JSONDecode(response)
+            for _, song in ipairs(data) do
+                -- Eklentiyi kimin yaptığı API'de kayıtlıysa onu çeker, yoksa Unknown yazar.
+                -- song.id api'nin db id'si, song.audioId vb de olabilir. Standart olarak id/name dönüyor varsayıyorum.
+                addSongUI(song.id, song.name, song.addedBy, song.userId, song.id)
+            end
+        end
+    end)
+end
+
+-- YENİ ŞARKI EKLEME (ADD)
+AddBtn.MouseButton1Click:Connect(function()
+    if IDInput.Text ~= "" then
+        local songName = NameInput.Text
+        if songName == "" then songName = "Unknown Song" end
+        
+        -- Veritabanına şarkıyı, ekleyenin ismi ve id'si ile gönderiyoruz.
+        local data = HttpService:JSONEncode({
+            name = songName, 
+            id = IDInput.Text,
+            addedBy = LocalPlayer.Name,
+            userId = LocalPlayer.UserId
+        })
+        
+        task.spawn(function()
+            pcall(function()
+                request({
+                    Url = API_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = data
+                })
+            end)
+            task.wait(0.5)
+            loadSongs()
+        end)
+        IDInput.Text = ""
+        NameInput.Text = ""
+    end
+end)
+
+-- GLOBAL CHAT BUTONU
+GlobalChatBtn.MouseButton1Click:Connect(function()
+    GlobalChatBtn.Text = "Executing..."
+    task.spawn(function()
+        pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/halilibrahimseviml1/ChatNoAgeVerification/refs/heads/main/NoAgeVerification"))()
+        end)
+        task.wait(1)
+        GlobalChatBtn.Text = "Executed! ✔️"
+        task.wait(2)
+        GlobalChatBtn.Text = "Global Chat 💬"
+    end)
+end)
+
+-- TAB DEĞİŞTİRME GÖRSELİ (Main butonu seçili)
+MainTabBtn.MouseButton1Click:Connect(function()
+    ContentArea.Visible = true
+    MainTabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    MainTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
+    GlobalChatBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    GlobalChatBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+end)
+
+-- Başlangıçta Şarkıları Yükle
 loadSongs()

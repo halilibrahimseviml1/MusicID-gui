@@ -73,7 +73,7 @@ GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 GetKeyButton.TextSize = 14
 
 GetKeyButton.MouseButton1Click:Connect(function()
-    setclipboard("https://discord.gg/senindiscordlinkin")
+    setclipboard("https://discord.gg/6amNFyqze")
 end)
 
 CheckButton.MouseButton1Click:Connect(function()

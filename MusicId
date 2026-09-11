@@ -273,7 +273,7 @@ CheckButton.MouseButton1Click:Connect(function()
         UIListLayout.Parent = ScrollArea
 
         local lastAddTick = 0
-        local loadSongs -- Forward declaration
+        local loadSongs
 
         local function addSongUI(songId, name, addedByName, addedByUserId, dbKey)
             local Item = Instance.new("Frame")
@@ -422,29 +422,6 @@ CheckButton.MouseButton1Click:Connect(function()
                 return
             end
             
-            local exists = false
-            local success, response = pcall(function() return game:HttpGet(API_URL) end)
-            if success and response then
-                local decodedSuccess, data = pcall(function() return HttpService:JSONDecode(response) end)
-                if decodedSuccess and type(data) == "table" then
-                    for _, song in ipairs(data) do
-                        if tostring(song.id) == tostring(sId) or string.lower(tostring(song.name)) == string.lower(tostring(sName)) then
-                            exists = true
-                            break
-                        end
-                    end
-                end
-            end
-            
-            if exists then
-                AddBtn.Text = "Exists!"
-                task.wait(1.5)
-                AddBtn.Text = "Add"
-                return
-            end
-            
-            lastAddTick = tick()
-            
             local payload = HttpService:JSONEncode({
                 name = sName, 
                 id = sId,
@@ -452,18 +429,29 @@ CheckButton.MouseButton1Click:Connect(function()
                 userId = tostring(LocalPlayer.UserId)
             })
             
+            AddBtn.Text = "Adding..."
             task.spawn(function()
-                pcall(function()
-                    request({ 
+                local success, res = pcall(function()
+                    return request({ 
                         Url = API_URL, 
                         Method = "POST", 
                         Headers = {["Content-Type"] = "application/json"}, 
                         Body = payload 
                     })
                 end)
-                task.wait(0.5)
-                loadSongs()
+                
+                if success and res and (res.StatusCode == 200 or res.StatusCode == 201) then
+                    AddBtn.Text = "Added!"
+                    loadSongs()
+                else
+                    AddBtn.Text = "Error!"
+                    print("API Error Response:", res and res.Body or "Network Fail")
+                end
+                
+                task.wait(1.5)
+                AddBtn.Text = "Add"
             end)
+            
             IDInput.Text = ""
             NameInput.Text = ""
         end)

@@ -1,4 +1,91 @@
-local HttpService = game:GetService("HttpService")
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UIStroke = Instance.new("UIStroke")
+local Title = Instance.new("TextLabel")
+local SubTitle = Instance.new("TextLabel")
+local KeyBox = Instance.new("TextBox")
+local CheckButton = Instance.new("TextButton")
+local GetKeyButton = Instance.new("TextButton")
+
+ScreenGui.Parent = game.CoreGui
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.Size = UDim2.new(0, 300, 0, 220)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UIStroke.Parent = MainFrame
+UIStroke.Color = Color3.fromRGB(255, 255, 0)
+UIStroke.Thickness = 3
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 10)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "LightningHub Key system"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+
+SubTitle.Name = "SubTitle"
+SubTitle.Parent = MainFrame
+SubTitle.BackgroundTransparency = 1
+SubTitle.Position = UDim2.new(0, 0, 0, 40)
+SubTitle.Size = UDim2.new(1, 0, 0, 20)
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.Text = "Join our Discord server and get the key"
+SubTitle.TextColor3 = Color3.fromRGB(180, 180, 180)
+SubTitle.TextSize = 12
+
+KeyBox.Name = "KeyBox"
+KeyBox.Parent = MainFrame
+KeyBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+KeyBox.Position = UDim2.new(0.1, 0, 0, 75)
+KeyBox.Size = UDim2.new(0.8, 0, 0, 35)
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.PlaceholderText = "Enter Key..."
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.TextSize = 14
+
+CheckButton.Name = "CheckButton"
+CheckButton.Parent = MainFrame
+CheckButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+CheckButton.Position = UDim2.new(0.1, 0, 0, 120)
+CheckButton.Size = UDim2.new(0.8, 0, 0, 35)
+CheckButton.Font = Enum.Font.GothamBold
+CheckButton.Text = "Check Key"
+CheckButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CheckButton.TextSize = 14
+
+GetKeyButton.Name = "GetKeyButton"
+GetKeyButton.Parent = MainFrame
+GetKeyButton.BackgroundColor3 = Color3.fromRGB(80, 80, 255)
+GetKeyButton.Position = UDim2.new(0.1, 0, 0, 165)
+GetKeyButton.Size = UDim2.new(0.8, 0, 0, 35)
+GetKeyButton.Font = Enum.Font.GothamBold
+GetKeyButton.Text = "Get Key"
+GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+GetKeyButton.TextSize = 14
+
+GetKeyButton.MouseButton1Click:Connect(function()
+    setclipboard("https://discord.gg/senindiscordlinkin")
+end)
+
+CheckButton.MouseButton1Click:Connect(function()
+    if KeyBox.Text == "halilibrahimseviml1" then
+        ScreenGui:Destroy()
+        -- ASIL SCRIPTINI BURAYA EKLEYEBİLİRSİN
+    else
+        KeyBox.Text = "Wrong Key!"
+        task.wait(1)
+        KeyBox.Text = ""
+    end
+end).local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer

@@ -73,7 +73,7 @@ GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 GetKeyButton.TextSize = 14
 
 GetKeyButton.MouseButton1Click:Connect(function()
-    setclipboard("https://discord.gg/6amNFyqze")
+    setclipboard("https://discord.gg/senindiscordlinkin")
 end)
 
 CheckButton.MouseButton1Click:Connect(function()
@@ -85,7 +85,7 @@ CheckButton.MouseButton1Click:Connect(function()
         local CoreGui = game:GetService("CoreGui")
         local LocalPlayer = Players.LocalPlayer
 
-        local API_URL = "https://musicid-wl0x.onrender.com/"
+        local API_URL = "https://musicid-wl0x.onrender.com/songs"
         local ADMIN_USER = "halilibrahimseviml1"
 
         local parentGui = CoreGui
@@ -381,7 +381,7 @@ CheckButton.MouseButton1Click:Connect(function()
             ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
         end)
 
-        function loadSongs()
+        local function loadSongs()
             for _, v in ipairs(ScrollArea:GetChildren()) do
                 if v:IsA("Frame") then v:Destroy() end
             end
@@ -389,21 +389,19 @@ CheckButton.MouseButton1Click:Connect(function()
             task.spawn(function()
                 local success, response = pcall(function() return game:HttpGet(API_URL) end)
                 if success and response then
-                    local data = HttpService:JSONDecode(response)
-                    for _, song in ipairs(data) do
-                        local sName = song.name or "Unknown"
-                        local addedBy = song.addedBy or "Unknown"
-                        local uId = song.userId or 1
-                        local dbKey = song._id or song.id
-                        
-                        if string.find(sName, "||") then
-                            local split = string.split(sName, "||")
-                            sName = split[1]
-                            addedBy = split[2] or "Unknown"
-                            uId = tonumber(split[3]) or 1
+                    local decodedSuccess, data = pcall(function()
+                        return HttpService:JSONDecode(response)
+                    end)
+                    
+                    if decodedSuccess and type(data) == "table" then
+                        for _, song in ipairs(data) do
+                            local sName = song.name or "Unknown"
+                            local addedBy = song.addedBy or "Unknown"
+                            local uId = song.userId or 1
+                            local dbKey = song._id or song.id
+                            
+                            addSongUI(song.id, sName, addedBy, uId, dbKey)
                         end
-                        
-                        addSongUI(song.id, sName, addedBy, uId, dbKey)
                     end
                 end
             end)
@@ -426,11 +424,13 @@ CheckButton.MouseButton1Click:Connect(function()
             local exists = false
             local success, response = pcall(function() return game:HttpGet(API_URL) end)
             if success and response then
-                local data = HttpService:JSONDecode(response)
-                for _, song in ipairs(data) do
-                    if tostring(song.id) == tostring(sId) or string.lower(tostring(song.name)) == string.lower(tostring(sName)) then
-                        exists = true
-                        break
+                local decodedSuccess, data = pcall(function() return HttpService:JSONDecode(response) end)
+                if decodedSuccess and type(data) == "table" then
+                    for _, song in ipairs(data) do
+                        if tostring(song.id) == tostring(sId) or string.lower(tostring(song.name)) == string.lower(tostring(sName)) then
+                            exists = true
+                            break
+                        end
                     end
                 end
             end

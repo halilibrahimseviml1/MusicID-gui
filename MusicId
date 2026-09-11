@@ -381,7 +381,7 @@ CheckButton.MouseButton1Click:Connect(function()
             ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
         end)
 
-        local function loadSongs()
+        function loadSongs()
             for _, v in ipairs(ScrollArea:GetChildren()) do
                 if v:IsA("Frame") then v:Destroy() end
             end

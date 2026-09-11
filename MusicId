@@ -273,6 +273,7 @@ CheckButton.MouseButton1Click:Connect(function()
         UIListLayout.Parent = ScrollArea
 
         local lastAddTick = 0
+        local loadSongs -- Forward declaration
 
         local function addSongUI(songId, name, addedByName, addedByUserId, dbKey)
             local Item = Instance.new("Frame")
@@ -381,7 +382,7 @@ CheckButton.MouseButton1Click:Connect(function()
             ScrollArea.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
         end)
 
-        function loadSongs()
+        loadSongs = function()
             for _, v in ipairs(ScrollArea:GetChildren()) do
                 if v:IsA("Frame") then v:Destroy() end
             end

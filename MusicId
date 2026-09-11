@@ -79,13 +79,7 @@ end)
 CheckButton.MouseButton1Click:Connect(function()
     if KeyBox.Text == "halilibrahimseviml1" then
         ScreenGui:Destroy()
-        -- ASIL SCRIPTINI BURAYA EKLEYEBİLİRSİN
-    else
-        KeyBox.Text = "Wrong Key!"
-        task.wait(1)
-        KeyBox.Text = ""
-    end
-end).local HttpService = game:GetService("HttpService")
+.local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
@@ -492,3 +486,10 @@ MainTabBtn.MouseButton1Click:Connect(function()
 end)
 
 loadSongs()
+
+    else
+        KeyBox.Text = "Wrong Key!"
+        task.wait(1)
+        KeyBox.Text = ""
+    end
+end)

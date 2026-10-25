@@ -297,6 +297,7 @@ local preloadedSongs = {
     {id = "88523902860927", name = "Unhappy by 666_66kj"}, {id = "85598267402579", name = "KiT MaB by puchula558722"},
     {id = "110398343528156", name = "Smooth hill by cxrloxxx1"}, {id = "90089940136467", name = "ASI BALA 10☠️☠️ by sepha53"},
     {id = "97785209024735", name = "My favorite⭐ by Admin"}, {id = "106980572211798", name = "segundo lugar by sleitheer"},
+    {id = "72142029907010", name = "... by JAJAJAJAJA_0089"}, {id = "70382002676533", name = "HAGALO by Fernando1929004"},
 }
 
 for _, song in ipairs(preloadedSongs) do
